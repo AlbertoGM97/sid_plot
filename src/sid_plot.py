@@ -197,7 +197,7 @@ class sid_plot:
 
       img_format = 'svg'
       if args.format_png: img_format = 'png'
-      plt.savefig( name+'.'+img_format, format=img_format) # For now only svg
+      plt.savefig( name+'.'+img_format, format=img_format, bbox_inches='tight', pad_inches=0.1) # For now only svg
 
     elif args.no_disp == False:                            # If neither out_file nor no_disp was provided
       plt.show()                                           # Show plot
