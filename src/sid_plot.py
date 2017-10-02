@@ -224,21 +224,48 @@ class sid_plot:
     return timestamp
 
 
-  '''def get_XRA(self):                         # TODO
+  def get_XRA(self):                         # TODO
  
     day = self.start_date[0: 10].replace('-','')
     NOAA_URL = 'ftp://ftp.swpc.noaa.gov/pub/indices/events/%sevents.txt' % (day)
-    print(NOAA_URL)
     try:
       request = urllib.request.Request(NOAA_URL)
       result = urllib.request.urlopen(request)
       resulttext = result.read()
-      print(resulttext)
 
     except:
       print ("[E] In NOAA XRA service")
 
-  def get_day_night(self):                      # TODO
+    XRA_fields = []
+    XRA_list   = []
+
+    resulttext = resulttext.decode('UTF-8').split('\n')
+    for each_line in resulttext:
+      if each_line.find('#Event') > -1:
+        XRA_fields = sid_plot._list_replace(each_line.replace('#','').split('  '), ' ', '')
+
+      if each_line.find('XRA') > -1:
+        each_line = sid_plot._list_replace(each_line.replace('+','').split('  '), ' ', '')       # Double space
+
+        temp_dic = {}
+        for k in range(0,len(XRA_fields)): temp_dic[XRA_fields[k]] = each_line[k]
+        XRA_list.append(temp_dic)
+
+    return XRA_list
+
+  def _list_replace(list, del_char, new_char):
+    k = 0
+    l = len(list)
+    while k < l:
+      list[k] = list[k].replace(del_char, new_char)
+      if list[k] == '':
+        list.pop(k)
+        l -= 1
+      else:k += 1
+
+    return list
+
+  '''def get_day_night(self):                      # TODO
     pass
   '''
 
@@ -249,4 +276,3 @@ if __name__ == "__main__":
     with open(each_file, 'r') as file_obj:
       ssp = sid_plot(file_obj)
       ssp.make_plot()
-      #ssp.get_XRA()
