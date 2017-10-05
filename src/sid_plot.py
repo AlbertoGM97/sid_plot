@@ -188,6 +188,21 @@ class sid_plot:
     
     #------------------------------------------
 
+    if args.do_xra:
+      events_list = self.get_XRA()
+      
+      for event in events_list:
+        x_start = datetime(2017,1,1,int(event['Begin'][0:2]), int(event['Begin'][2:4]))
+        x_max   = datetime(2017,1,1,int(event['Max'][0:2]),   int(event['Max'][2:4]))
+        x_end   = datetime(2017,1,1,int(event['End'][0:2]),   int(event['End'][2:4]))
+        plt.axvline(x = x_start, color = 'g', alpha = 0.9, linestyle = ':')
+        plt.axvline(x = x_max,   color = 'r', alpha = 0.9, linestyle = ':')
+        plt.axvline(x = x_end,   color = 'y', alpha = 0.9, linestyle = ':')
+
+        ax.text(x_max, 0, event['Particulars'], bbox={'facecolor':'white', 'alpha':0.5})
+
+    #------------------------------------------
+
     if args.out_file:                                       # If argument was provided
       fig.set_size_inches(12, 7.5) # (18.5, 10.5)           # Set image size
       if args.out_file == '%':                              # If '%' was provided as argument:
