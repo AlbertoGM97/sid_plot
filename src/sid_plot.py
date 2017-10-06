@@ -243,6 +243,7 @@ class sid_plot:
  
     day = self.start_date[0: 10].replace('-','')
     NOAA_URL = 'ftp://ftp.swpc.noaa.gov/pub/indices/events/%sevents.txt' % (day)
+    resulttext = b''
     try:
       request = urllib.request.Request(NOAA_URL)
       result = urllib.request.urlopen(request)
