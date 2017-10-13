@@ -135,7 +135,7 @@ class sid_plot:
 
     plt.ylabel('Rx power (relative)' +  y_unit)              # Label on rx axis
     plt.xlabel('UTC time')                                   # Label on time axis
-    plt.title('UAH SID - 12/08/2017', fontsize=10)           # Title = Date + Name
+    plt.title('UAH SID @ '+self.start_date[0:10], fontsize=10)    # Title = Name+Date(Iso8601)
     
     #------------------------------------------
     
