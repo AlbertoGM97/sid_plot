@@ -26,11 +26,12 @@ import sys
 
 parser = argparse.ArgumentParser(description = 'usage: python3 sid_plot.py file1.csv file2.csv [Options]')
 parser.add_argument('-f', '--filter', dest = 'filter',  help='Filter with moving avg',action='store_true')
+parser.add_argument('-l', '--logy', dest = 'do_log', help = 'Use logarithmic scale on Y axis', action = 'store_true')
 parser.add_argument('-o', '--out',  dest = 'out_file', 
           help='Out img to file (default svg). For auto date name type -o %%. NOTE:-o option implies -n')
 parser.add_argument('-p', '--png', dest = 'format_png',  help='Use png image format',  action='store_true')
 parser.add_argument('-n', '--nodisp', dest = 'no_disp',  help='Dont output to screen', action='store_true')
-parser.add_argument('-w', '--web',  dest = 'do_xra',   help='Add NOAA XRA events(Not implemented)', action='store_true')
+parser.add_argument('-w', '--web',  dest = 'do_xra',   help='Add NOAA XRA events', action='store_true')
 parser.add_argument('-t', '--time',   dest = 'add_time', help='Add timestamp on image',action='store_true')
 
 # TODO: Files with 0's are a problem
@@ -131,7 +132,7 @@ class sid_plot:
     ax.grid(which='minor', linestyle='-.', linewidth='0.5')  # Minor grid
 
     y_unit = '(Nat)'
-    #if args.do_log: y_unit = '(dB)'                         # FIX: 0 val files
+    if args.do_log: y_unit = '(dB)'
 
     plt.ylabel('Rx power (relative)' +  y_unit)              # Label on rx axis
     plt.xlabel('UTC time')                                   # Label on time axis
@@ -158,16 +159,24 @@ class sid_plot:
     plt.axvspan(datemin, datemin+timedelta(hours = 5.5),  facecolor='k', alpha=0.1)   # Dim on night 00-06
     plt.axvspan(datemin+timedelta(hours = 22), datemax,   facecolor='k', alpha=0.1)   # Dim on night 22-24
     #------------------------------------------
-    # if args.do_log: rcv = 20*np.log10(rcv)                  # FIX: 0 val files
+
     x_data = self._generate_timestamp()
     
     plot_axis = []
     [k, offset] = [0, 0]
+    [y_min, y_max] = [[],[]]
 
     while k < len(self.stations):
       try:
         y_data = self.csv_reader(self.file_obj, k+offset)
+        y_data[y_data <= 0] = np.NaN        # a '0' == 'No data'
+
+        if args.do_log: y_data = 20*np.log10(y_data)
         if args.filter: y_data = self.mov_avg(y_data, 6*2+1)  # Filter with moving average
+
+        if args.do_log:
+          y_min.append(self.min(y_data))
+          y_max.append(self.max(y_data))
 
       except:
         offset = 1          # Will fail for buffers with timestamp
@@ -182,7 +191,7 @@ class sid_plot:
     for i in range(0,len(self.stations)):
       leg_list.append(self.stations[i] + ' ('+ '%.2f' % (float(self.frequencies[i])/1000)+'kHz)')
 
-
+    if args.do_log: ax.set_ylim([self.min(y_min)-1,self.max(y_max)+1])   # Logarithmic axix limits
     plt.legend(plot_axis, leg_list, loc='upper right', bbox_to_anchor=(1,1), fontsize = 9)       # Add legend to plot
 
     
@@ -199,7 +208,9 @@ class sid_plot:
         plt.axvline(x = x_max,   color = 'r', alpha = 0.9, linestyle = ':')
         plt.axvline(x = x_end,   color = 'y', alpha = 0.9, linestyle = ':')
 
-        ax.text(x_max, 0, event['Particulars'], bbox={'facecolor':'white', 'alpha':0.5})
+        min_axis = 0
+        if args.do_log: min_axis = self.min(y_min)-0.2
+        ax.text(x_max, min_axis, event['Particulars'], bbox={'facecolor':'white', 'alpha':0.5})
 
     #------------------------------------------
 
@@ -216,6 +227,30 @@ class sid_plot:
 
     elif args.no_disp == False:                            # If neither out_file nor no_disp was provided
       plt.show()                                           # Show plot
+
+  def min(self, array):
+    l = 0
+    for k in array:
+      if k != np.NaN and k!=0:
+        if l == 0:
+          current_min = k
+          l = 1
+        else:
+          if k < current_min:
+            current_min = k
+    return current_min
+
+  def max(self, array):
+    l = 0
+    for k in array:
+      if k != np.NaN:
+        if l == 0:
+          current_max = k
+          l = 1
+        else:
+          if k > current_max:
+            current_max = k
+    return current_max
 
   def mov_avg(self, array, window = 10):
     temp = np.zeros(len(array))
