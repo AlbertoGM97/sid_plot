@@ -157,7 +157,7 @@ class sid_plot:
 
 
     plt.axvspan(datemin, datemin+timedelta(hours = 5.5),  facecolor='k', alpha=0.1)   # Dim on night 00-06
-    plt.axvspan(datemin+timedelta(hours = 22), datemax,   facecolor='k', alpha=0.1)   # Dim on night 22-24
+    plt.axvspan(datemin+timedelta(hours = 18.5), datemax,   facecolor='k', alpha=0.1)   # Dim on night 22-24
     #------------------------------------------
 
     x_data = self._generate_timestamp()
