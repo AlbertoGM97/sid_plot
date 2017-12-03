@@ -231,7 +231,7 @@ class sid_plot:
   def min(self, array):
     l = 0
     for k in array:
-      if k != np.NaN and k!=0:
+      if not np.isnan(k) and k!=0:
         if l == 0:
           current_min = k
           l = 1
@@ -243,7 +243,7 @@ class sid_plot:
   def max(self, array):
     l = 0
     for k in array:
-      if k != np.NaN:
+      if not np.isnan(k):
         if l == 0:
           current_max = k
           l = 1
