@@ -129,7 +129,7 @@ class sid_plot:
     ax.set_axisbelow(True)                                   # Grid below data
     ax.minorticks_on()                                       # To enable minor grid
     ax.grid(which = 'major', linestyle="-.")                 # Major grid
-    ax.grid(which='minor', linestyle='-.', linewidth='0.5')  # Minor grid
+    ax.grid(which='minor', linestyle='-.', linewidth=0.5)  # Minor grid
 
     y_unit = '(Nat)'
     if args.do_log: y_unit = '(dB)'
