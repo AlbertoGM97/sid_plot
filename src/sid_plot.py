@@ -176,7 +176,7 @@ class sid_plot:
         if args.filter: y_data = self.mov_avg(y_data, 6*2+1)  # Filter with moving average
         
         if args.std_th:
-          if np.std(y_data, ddof=1) < args.std_th:
+          if np.nanstd(y_data, ddof=1) < args.std_th:
             plot_station = False
             skip.append(k)
 
