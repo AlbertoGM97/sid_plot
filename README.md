@@ -18,4 +18,5 @@ optional arguments:
   -n, --nodisp          Dont output to screen
   -w, --web             Add NOAA XRA events
   -t, --time            Add timestamp on image (UTC hour)
+  -s, --std             Hide station with standard deviation below threshold
   ```

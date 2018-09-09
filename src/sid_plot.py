@@ -33,9 +33,8 @@ parser.add_argument('-p', '--png', dest = 'format_png',  help='Use png image for
 parser.add_argument('-n', '--nodisp', dest = 'no_disp',  help='Dont output to screen', action='store_true')
 parser.add_argument('-w', '--web',  dest = 'do_xra',   help='Add NOAA XRA events', action='store_true')
 parser.add_argument('-t', '--time',   dest = 'add_time', help='Add timestamp on image',action='store_true')
+parser.add_argument('-s', '--std',   dest = 'std_th', help='Hide station with standard deviation below threshold',action='store_true')
 
-# TODO: Files with 0's are a problem
-#parser.add_argument("-l", "--log",  dest = "do_log",   help="Log scale",       action="store_true")
 (args, unk) = parser.parse_known_args()
 
 if args.no_disp:
@@ -163,18 +162,25 @@ class sid_plot:
     x_data = self._generate_timestamp()
     
     plot_axis = []
+    skip = []
     [k, offset] = [0, 0]
     [y_min, y_max] = [[],[]]
 
     while k < len(self.stations):
+      plot_station = True
       try:
         y_data = self.csv_reader(self.file_obj, k+offset)
         y_data[y_data <= 0] = np.NaN        # a '0' == 'No data'
 
         if args.do_log: y_data = 20*np.log10(y_data)
         if args.filter: y_data = self.mov_avg(y_data, 6*2+1)  # Filter with moving average
+        
+        if args.std_th:
+          if np.std(y_data, ddof=1) < args.std_th:
+            plot_station = False
+            skip.append(k)
 
-        if args.do_log:
+        if args.do_log and plot_station:
           y_min.append(self.min(y_data))
           y_max.append(self.max(y_data))
 
@@ -183,13 +189,15 @@ class sid_plot:
         k = 0               # Offset is to skip one column
         continue
 
-      new_a, = ax.plot(x_data, y_data, alpha = 0.8)
-      plot_axis.append(new_a)
+      if plot_station:
+        new_a, = ax.plot(x_data, y_data, alpha = 0.8)
+        plot_axis.append(new_a)
       k = k+1
     
     leg_list = []
     for i in range(0,len(self.stations)):
-      leg_list.append(self.stations[i] + ' ('+ '%.2f' % (float(self.frequencies[i])/1000)+'kHz)')
+      if i not in skip:
+        leg_list.append(self.stations[i] + ' ('+ '%.2f' % (float(self.frequencies[i])/1000)+'kHz)')
 
     if args.do_log: ax.set_ylim([self.min(y_min)-1,self.max(y_max)+1])   # Logarithmic axix limits
     plt.legend(plot_axis, leg_list, loc='upper right', bbox_to_anchor=(1,1), fontsize = 9)       # Add legend to plot
@@ -324,6 +332,9 @@ class sid_plot:
 if __name__ == "__main__":
   
   for each_file in filenames:
-    with open(each_file, 'r') as file_obj:
-      ssp = sid_plot(file_obj)
-      ssp.make_plot()
+    try:
+      with open(each_file, 'r') as file_obj:
+        ssp = sid_plot(file_obj)
+        ssp.make_plot()
+    except:
+      pass
